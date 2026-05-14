@@ -52,6 +52,13 @@ func (queue *ArrayQueue) Dequeue() (int, error) {
 	return value, nil
 }
 
+func (queue *ArrayQueue) Front() (int, error) {
+	if queue.inserted == 0 {
+		return -1, errors.New("Nao se pode acessar Front em uma queue vazia")
+	}
+
+	return queue.values[queue.front], nil
+}
 
 func (queue *ArrayQueue) IsEmpty() bool {
 	return queue.inserted == 0

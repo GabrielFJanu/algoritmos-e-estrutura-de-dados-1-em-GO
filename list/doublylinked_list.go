@@ -15,17 +15,15 @@ type DoublyLinkedList struct {
 }
 
 func (list *DoublyLinkedList) Add(value int) {
-	newNode := &Node2P{nil, value, nil}
+	newNode := &Node2P{value: value, prev: list.tail}
 
-	if list.inserted == 0 { // caso list vazia
-		list.head = newNode
-	} else { // caso list nao vazia
+	if list.tail != nil {
 		list.tail.next = newNode
-		newNode.prev = list.tail
+	} else {
+		list.head = newNode
 	}
 
 	list.tail = newNode
-
 	list.inserted++
 }
 
@@ -37,33 +35,31 @@ func (list *DoublyLinkedList) AddOnIndex(value int, index int) error {
 		return errors.New("index acima da faixa aceitável")
 	}
 
-	newNode := &Node2P{nil, value, nil}
-
-	if list.inserted == 0 { // caso list vazia
-		list.head = newNode
-		list.tail = newNode
-	} else {
-		if index == 0 { // index no começo
-			list.head.prev = newNode //independente
-			newNode.next = list.head //independente
-			list.head = newNode
-		} else {
-			prevNode := list.head
-			for i := 0; i < index-1; i++ {
-				prevNode = prevNode.next
-			}
-			if index == list.inserted {
-				prevNode.next = newNode
-				newNode.prev = prevNode
-				list.tail = newNode
-			} else {
-				newNode.prev = prevNode
-				newNode.next = prevNode.next
-				prevNode.next = newNode
-				newNode.next.prev = newNode
-			}
-		}
+	if index == list.inserted {
+		list.Add(value)
+		return nil
 	}
+
+	newNode := &Node2P{value: value}
+
+	if index == 0 {
+		newNode.next = list.head
+		list.head.prev = newNode
+		list.head = newNode
+		list.inserted++
+		return nil
+	}
+
+	nextNode := list.head
+	for i := 0; i < index; i++ {
+		nextNode = nextNode.next
+	}
+
+	prevNode := nextNode.prev
+	newNode.prev = prevNode
+	newNode.next = nextNode
+	prevNode.next = newNode
+	nextNode.prev = newNode
 
 	list.inserted++
 	return nil
@@ -77,27 +73,21 @@ func (list *DoublyLinkedList) RemoveOnIndex(index int) error {
 		return errors.New("index acima da faixa aceitável")
 	}
 
-	if list.inserted == 1 {
-		list.head = nil
-		list.tail = nil
-	} else {
-		if index == 0 {
-			list.head.next.prev = nil
-			list.head = list.head.next
-		} else {
-			prevNode := list.head
-			for i := 0; i < index-1; i++ {
-				prevNode = prevNode.next
-			}
+	curNode := list.head
+	for i := 0; i < index; i++ {
+		curNode = curNode.next
+	}
 
-			if index == list.inserted-1 {
-				prevNode.next = nil
-				list.tail = prevNode
-			} else {
-				prevNode.next = prevNode.next.next
-				prevNode.next.prev = prevNode
-			}
-		}
+	if curNode.prev != nil {
+		curNode.prev.next = curNode.next
+	} else {
+		list.head = curNode.next
+	}
+
+	if curNode.next != nil {
+		curNode.next.prev = curNode.prev
+	} else {
+		list.tail = curNode.prev
 	}
 
 	list.inserted--
@@ -140,11 +130,8 @@ func (list *DoublyLinkedList) Size() int {
 }
 
 func (list *DoublyLinkedList) Reverse() {
-	curNode := list.head
-
-	for i := 0; i < list.inserted-1; i++ {
+	for curNode := list.head; curNode != nil; curNode = curNode.prev {
 		curNode.next, curNode.prev = curNode.prev, curNode.next
-		curNode = curNode.prev
 	}
 
 	list.head, list.tail = list.tail, list.head
